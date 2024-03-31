@@ -1,69 +1,121 @@
 pragma solidity ^0.8.15;
- 
+
 import "foundry-huff/HuffDeployer.sol";
 import "forge-std/Test.sol";
 import "@hack/store/store.sol";
 import "../../../src/wallet/CollectorsWallet.sol";
 
+contract TestWallet is Test {
+    Wallet public w;
+    address public myUser = vm.addr(1234);
 
-contract TestWallet is Test{
+    function setUp() public {
+        vm.startPrank(myUser);
+        w = new Wallet();
+        // payable(address(w)).transfer(100);//move  50 to the contract
+        vm.stopPrank();
+    }
 
-Wallet public CollectorWallet;
-address public myUser = vm.addr(1234);
+    function testReceive() public {
+        uint256 startBalance = address(w).balance; //How much money is in the current account
+        payable(address(w)).transfer(100); //Depositing money into the account
+        uint256 finalBalance = address(w).balance; //How much money is in the current account
+        assertEq(finalBalance, startBalance + 100);
+    }
 
+    function testAddGabayIsAllowd() public {
+        uint256 nowcounter = w.counter();
+        vm.startPrank(myUser);
+        w.addGabay(0x57C91e4803E3bF32c42a0e8579aCaa5f3762af71);
+        assertEq(w.counter(), nowcounter + 1);
+        vm.stopPrank();
+    }
 
-function setUp() public{
-   CollectorWallet=new Wallet(); 
+    function testAddGabayIsntAllowd() public {
+        uint256 nowcounter = w.counter();
+        vm.startPrank(0x57C91e4803E3bF32c42a0e8579aCaa5f3762af71);
+        vm.expectRevert("You do not have permissions");
+        w.addGabay(0x074AC318E0f004146dbf4D3CA59d00b96a100100);
+        assertEq(w.counter(), nowcounter);
+        vm.stopPrank();
+    }
 
-   // address Collector=
-   CollectorWallet.addGabay(0x074AC318E0f004146dbf4D3CA59d00b96a100100);
-   payable(address(CollectorWallet)).transfer(50);//move  50 to the contract
+    function testAddGabayAlreadyExists() public {
+        vm.startPrank(myUser);
+        vm.expectRevert("this is already a gabay");
+        w.addGabay(0x074AC318E0f004146dbf4D3CA59d00b96a100100);
+        vm.stopPrank();
+    }
 
-}
+    function testAddGabayMoreThanThree() public {
+        uint256 nowcounter = w.counter();
+        vm.startPrank(myUser);
+        w.addGabay(0x074AC318E0f004146dbf4D3CA59d00b96a100100);
+        vm.expectRevert("too many Gabaim");
+        w.addGabay(0x7ae3DbAC75D264B6F6976639ebBfC645601D3F15);
+        assert(nowcounter > 3);
+        vm.stopPrank();
+    }
 
-function testReceive() public{
-uint256 startBalance=address(CollectorWallet).balance;//How much money is in the current account
-payable(address(CollectorWallet)).transfer(100);//Depositing money into the account
-uint256 finalBalance=address(CollectorWallet).balance;//How much money is in the current account
-assertEq(finalBalance,startBalance+100);
-}
+    function testChangeOwner() public {
+        address newCollector = vm.addr(10);
+        address oldCollector = 0x434d091Ef55054e5fe7e43008A7120f92D471415;
+        w.changeOwner(oldCollector, newCollector);
+        assertEq(w.collectors(oldCollector), 0);
+        assertEq(w.collectors(newCollector), 1);
+    }
 
+    function testChangeOwnerIsAllowd() public {
+        address oldCollector = vm.addr(15);
+        address newCollector = 0x074AC318E0f004146dbf4D3CA59d00b96a100100;
+        vm.expectRevert("you aren't a collector");
+        w.changeOwner(oldCollector, newCollector);
+        assertEq(w.collectors(oldCollector), 0);
+    }
 
-function testAddGabayIsAllowd() public{
-   address isOwner=0x2691200b3624C82757F28B52E4573bB61f6CCFf4;
-   vm.startPrank(isOwner);
-   assertLe(CollectorWallet.counter(),3);
-   vm.stopPrank();
-}
-function testAddGabayIsntAllowd() public{
-   address isOwner=vm.addr(1234);
-   vm.startPrank(isOwner);
-  // vm.expectRevert("you are not owner");
-   vm.stopPrank();
-}
-function testAddGabay() public{
-   CollectorWallet.addGabay(0x57C91e4803E3bF32c42a0e8579aCaa5f3762af71);
-   assertLe(CollectorWallet.counter(),2);
-}
-function testChangeOwner() public{
-   address oldGabay = 0x074AC318E0f004146dbf4D3CA59d00b96a100100;
-   address newGabai = 0x81Ee0c1564B711bDf324295a1f1e02E1920876aD;//update new address
-   CollectorWallet.changeOwner(oldGabay,newGabai);
-}
+    function testChangeOwnerIsntAllowd() public {
+        address oldCollector = 0x434d091Ef55054e5fe7e43008A7120f92D471415;
+        address newCollector = 0x168e5f2f4D0aBA5f4B4434b9Be4beAF43dc9c5d5;
+        vm.expectRevert("you are a collector");
+        w.changeOwner(oldCollector, newCollector);
+        assertEq(w.collectors(newCollector), 1);
+    }
 
-function testWhithdrawIsAllowd() public{
-  uint256 amount=50;
-  uint256 prevbalanc=address(CollectorWallet).balance;
-  uint256 expectedbalanc=address(CollectorWallet).balance+amount;
-  vm.startPrank(myUser);
-  CollectorWallet.whithdraw(amount);
-  console.log("hello");
-  assertEq(prevbalanc,expectedbalanc);
-  vm.stopPrank();
-   
-}
+    function testWhithdrawIsAllowd() public {
+        uint256 amount = 50;
+        uint256 prevbalanc = address(w).balance;
+        uint256 expectedbalanc = address(w).balance + amount;
+        vm.startPrank(myUser);
+        w.whithdraw(amount);
+        console.log("hello");
+        assertEq(prevbalanc, expectedbalanc);
+        vm.stopPrank();
+    }
+    // function testWhithdrawisntenoughmoney() public{
+    //   uint256 amount=150;
+    //   uint256 prevbalanc=address(CollectorWallet).balance;
+    //   uint256 expectedbalanc=address(CollectorWallet).balance+amount;
+    //   vm.startPrank(myUser);
+    //   CollectorWallet.whithdraw(amount);
+    //   assertEq(prevbalanc,expectedbalanc,"you do not have enough money");
+    //   vm.stopPrank();
 
-function testWhithdrawIsntAllowd() public{
+    // }
+    // function testWhithdrawIsntAllowd() public{
+    //   uint256 amount=10;
+    //   uint256 prevbalanc=address(CollectorWallet).balance;
+    //   uint256 expectedbalanc=address(CollectorWallet).balance+amount;
+    //   vm.expectRevert("You do not have permissions");
+    //   vm.startPrank(0x81Ee0c1564B711bDf324295a1f1e02E1920876aD);
+    //   CollectorWallet.whithdraw(amount);
+    //   assertEq(prevbalanc,expectedbalanc);
+    //   vm.stopPrank();
 
-}
+    // }
+
+    function testGetBalance() public {
+        uint256 nowBalance = address(w).balance;
+        uint256 getbalance = w.getBalance();
+        assertEq(nowBalance, getbalance, "Erore");
+    }
 }
