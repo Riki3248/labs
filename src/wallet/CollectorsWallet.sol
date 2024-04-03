@@ -20,6 +20,7 @@ contract Wallet {
     }
 
     function addGabay(address collector) public isOwner {
+        require(collectors[collector] != 1,"this is already a gabay");
         require(counter < 3, "There are enough collectors");
         collectors[collector] = 1;
         counter++;

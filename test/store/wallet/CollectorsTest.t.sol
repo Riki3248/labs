@@ -10,14 +10,15 @@ contract TestWallet is Test {
     address public myUser = vm.addr(1234);
 
     function setUp() public {
+        console.log("oooooooooooooooooooo");
         vm.startPrank(myUser);
         w = new Wallet();
-        // payable(address(w)).transfer(100);//move  50 to the contract
         vm.stopPrank();
     }
 
     function testReceive() public {
         uint256 startBalance = address(w).balance; //How much money is in the current account
+        console.log(startBalance);
         payable(address(w)).transfer(100); //Depositing money into the account
         uint256 finalBalance = address(w).balance; //How much money is in the current account
         assertEq(finalBalance, startBalance + 100);
@@ -33,8 +34,9 @@ contract TestWallet is Test {
 
     function testAddGabayIsntAllowd() public {
         uint256 nowcounter = w.counter();
-        vm.startPrank(0x57C91e4803E3bF32c42a0e8579aCaa5f3762af71);
-        vm.expectRevert("You do not have permissions");
+        address IsntAllowd=vm.addr(8);
+        vm.startPrank(IsntAllowd);
+        vm.expectRevert("you are not owner");
         w.addGabay(0x074AC318E0f004146dbf4D3CA59d00b96a100100);
         assertEq(w.counter(), nowcounter);
         vm.stopPrank();
@@ -43,7 +45,7 @@ contract TestWallet is Test {
     function testAddGabayAlreadyExists() public {
         vm.startPrank(myUser);
         vm.expectRevert("this is already a gabay");
-        w.addGabay(0x074AC318E0f004146dbf4D3CA59d00b96a100100);
+        w.addGabay(0x434d091Ef55054e5fe7e43008A7120f92D471415);
         vm.stopPrank();
     }
 
@@ -68,7 +70,7 @@ contract TestWallet is Test {
     function testChangeOwnerIsAllowd() public {
         address oldCollector = vm.addr(15);
         address newCollector = 0x074AC318E0f004146dbf4D3CA59d00b96a100100;
-        vm.expectRevert("you aren't a collector");
+        vm.expectRevert("you are not owner");
         w.changeOwner(oldCollector, newCollector);
         assertEq(w.collectors(oldCollector), 0);
     }
@@ -82,6 +84,7 @@ contract TestWallet is Test {
     }
 
     function testWhithdrawIsAllowd() public {
+       payable(address(w)).transfer(100); //Depositing money into the account
         uint256 amount = 50;
         uint256 prevbalanc = address(w).balance;
         uint256 expectedbalanc = address(w).balance + amount;
