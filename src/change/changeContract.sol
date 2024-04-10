@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: private
 pragma solidity ^0.8.20;
 
-import "@hack/like/IERC20.sol";
-import "@hack/erc20/erc20.sol";
+// import "@hack/like/IERC20.sol";
+// import "@hack/erc20/erc20.sol";
 
 contract Change {
 
