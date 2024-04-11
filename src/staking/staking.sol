@@ -3,7 +3,7 @@
 pragma solidity ^0.8.20;
 import "../../../MyToken/new-project/src/MyToken.sol";
  import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-contract StakingRewards {
+contract StakingRewards{
     IERC20 public immutable stakingToken;
     MyToken public immutable rewardToken;
     address public owner;
@@ -17,51 +17,50 @@ contract StakingRewards {
     mapping(address => uint256) public rewards;
 
     
-//     constructor(address _stakingToken, address _rewardToken) {
-//         owner = msg.sender;
-//         stakingToken = IERC20(_stakingToken);
-//         rewardToken=new MyToken(); 
-//         totalSupply = 1000000;
-
-//     }
+    
+    constructor(address _stakingToken) {
+        owner = msg.sender;
+        stakingToken = IERC20(_stakingToken);
+        rewardToken=new MyToken(); 
+    }
     
 
-//     modifier onlyOwner() {
-//         require(msg.sender == owner, "not authorized");
-//         _;
-//     }
-//     receive() external payable {}
+    modifier onlyOwner() {
+        require(msg.sender == owner, "not authorized");
+        _;
+    }
+    receive() external payable {}
 
-//     function getReward(uint256 _amount)  external () {
-//         rewardToken.transferFrom(address(this), msg.sender, _amount);
-//         rewards[msg.sender]+=_amount;
+    function getReward(uint256 _amount)  external  {
+        rewardToken.transferFrom(address(this), msg.sender, _amount);
+        rewards[msg.sender]+=_amount;
     
-//     }
-//     function Deposit(uint256 _amount)  external onlyOwner
-//      {
-//          require(_amount > 0, "amount = 0");
-//          stakingToken.transferFrom(msg.sender, address(this), _amount);
-//          totalSupply += _amount; 
-//          percentOfDeposit=_amount*100/totalSupply;
-//          deposits[msg.sender] += percentOfDeposit;
-//          startDate[msg.sender]=block.timestamp;
-//          getReward(_amount);
-//     }
+    }
+    function Deposit(uint256 _amount)  external onlyOwner
+     {
+         require(_amount > 0, "amount = 0");
+         stakingToken.transferFrom(msg.sender, address(this), _amount);
+         totalSupply += _amount; 
+         percentOfDeposit=_amount*100/totalSupply;
+         deposits[msg.sender] += percentOfDeposit;
+         startDate[msg.sender]=block.timestamp;
+         this.getReward(_amount);
+    }
 
-//     modifier isSevenDay {//Checks if 7 days have passed since the deposit
-//       uint256 today =block.timestamp;
-//       require(today-(startDate[msg.sender]) >= 7, "reward duration not finished"); 
-//      _;
-//     }
+    modifier isSevenDay {//Checks if 7 days have passed since the deposit
+      uint256 today =block.timestamp;
+      require(today-(startDate[msg.sender]) >= 7, "reward duration not finished"); 
+     _;
+    }
 
-//    function withdraw(uint256 rewardToken) external isSevenDay
-//    {
+   function withdraw(uint256 token) external isSevenDay
+   {
     
-//     require(rewardToken > 0, "you dont have a rewardToken"); 
-//     require(deposits[msg.sender]>=_amount, "You don't have enough token you is drow"); 
-//     uint256 calc= (deposits[msg.sender]*totalSupply)/reward[msg.sender]*rewardToken;
-//     deposits[msg.sender]-=calc;
-//     stakingToken.transferFrom(address(this), msg.sender,calc );//
-//     totalSupply -= calc; 
-// }
+    require(token > 0, "you dont have a rewardToken"); 
+    require(deposits[msg.sender]>=token, "You don't have enough token you is drow"); 
+    uint256 calc= (deposits[msg.sender]*totalSupply)/rewards[msg.sender]*token;
+    deposits[msg.sender]-=calc;
+    stakingToken.transferFrom(address(this), msg.sender,calc );//
+    totalSupply -= calc; 
+}
 }
