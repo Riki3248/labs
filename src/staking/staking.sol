@@ -2,65 +2,76 @@
 // https://solidity-by-example.org/defi/staking-rewards/
 pragma solidity ^0.8.20;
 import "../../../MyToken/new-project/src/MyToken.sol";
- import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-contract StakingRewards{
-    MyToken public immutable rewardToken;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+struct User {
+    uint amount;
+    uint calc;
+    uint time;
+}
+
+contract Staking {
+    uint WAD = 10 ** 18;
+    MyToken public token;
+    uint reward;
+    mapping(address => User) public start;
+
     address public user;
-    uint public WAD=10 ** 18;
+
     uint public startAt;
-        uint public duration=7;
+
+    uint public duration = 7;
 
     uint public updatedAt;
     uint public rewardPerTokenStored;
     mapping(address => uint) public deposits;
-    uint256 percentOfDeposit;//percent from totalSupply
+    uint256 percentOfDeposit; //percent from totalSupply
     uint public totalSupply;
-    mapping(address => uint) public startDate;
     mapping(address => uint256) public rewards;
-    // BPS = 10 ** 4;
 
-    constructor(address _rewardToken) {
+    constructor(address _token) {
         user = msg.sender;
-        rewardToken = MyToken(_rewardToken); 
+        token = MyToken(_token);
+        reward = 100000 * WAD;
+        token.mint(100000 * WAD);
     }
 
     modifier onlyUser() {
         require(msg.sender == user, "not authorized");
         _;
     }
+
     receive() external payable {}
 
-    // function getReward(uint256 _amount)  external  {
-    //     rewardToken.transferFrom(address(this), msg.sender, _amount);
-    //     rewards[msg.sender]+=_amount;
-    
-    // }
-    function Deposit(uint256 _amount)  external onlyUser
-     {
-         require(_amount > 0, "amount = 0");
-         _amount=_amount*WAD;
-         rewardToken.transferFrom(msg.sender, address(this), _amount);
-         totalSupply += _amount; 
-         percentOfDeposit=_amount/totalSupply;
-         deposits[msg.sender] += percentOfDeposit;
-         startDate[msg.sender]=block.timestamp;
-        //  this.getReward(_amount);
+    function Deposit(uint256 amount) external onlyUser {
+        require(amount > 0, "amount = 0");
+        token.transferFrom(msg.sender, address(this), amount);
+        totalSupply += amount;
+        start[msg.sender].time = block.timestamp;
+        start[msg.sender].amount += amount;
+        start[msg.sender].calc += (amount * 100) / totalSupply;
+        
     }
 
-    modifier isEnoughDays {//Checks if 7 days have passed since the deposit
-      uint256 today =block.timestamp;
-      require(today-(startDate[msg.sender]) >= duration, "reward duration not finished"); 
-     _;
+    modifier isEnoughDays() {
+        //Checks if 7 days have passed since the deposit
+        uint256 today = block.timestamp;
+        require(
+            today - start[msg.sender].time >= 7 days,
+            "reward duration not finished"
+        );
+        _;
     }
 
-   function withdraw(uint256 token) external isEnoughDays
-   {
-    
-    require(token > 0, "you dont have a rewardToken"); 
-    require(deposits[msg.sender]>=token, "You don't have enough token you is drow"); 
-    uint256 calc= (deposits[msg.sender]*totalSupply)/rewards[msg.sender]*token;
-    deposits[msg.sender]-=calc;
-    rewardToken.transferFrom(address(this), msg.sender,calc );//
-    totalSupply -= calc; 
-}
+    function withdraw() external isEnoughDays {
+        uint calc = start[msg.sender].calc; 
+        uint256 CountReward = calcReward(totalSupply, calc);     
+        token.transferFrom(address(this), msg.sender, CountReward); 
+        totalSupply -= CountReward;
+    }
+
+    function calcReward(uint totalSupply ,uint calc) public returns (uint256) {
+       uint256 CountReward = (calc * totalSupply*1e18) / 100*1e18;
+      return CountReward;
+    }
 }
