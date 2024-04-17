@@ -15,25 +15,14 @@ contract Staking {
     MyToken public token;
     uint reward;
     mapping(address => User) public start;
-
     address public user;
-
-    uint public startAt;
-
-    uint public duration = 7;
-
-    uint public updatedAt;
-    uint public rewardPerTokenStored;
-    mapping(address => uint) public deposits;
-    uint256 percentOfDeposit; //percent from totalSupply
-    uint public totalSupply;
-    mapping(address => uint256) public rewards;
+    uint public totalSupply = 100000;
 
     constructor(address _token) {
         user = msg.sender;
         token = MyToken(_token);
         reward = 100000 * WAD;
-        token.mint(100000 * WAD);
+        token.mint(address(this), totalSupply * WAD);
     }
 
     modifier onlyUser() {
@@ -50,7 +39,6 @@ contract Staking {
         start[msg.sender].time = block.timestamp;
         start[msg.sender].amount += amount;
         start[msg.sender].calc += (amount * 100) / totalSupply;
-        
     }
 
     modifier isEnoughDays() {
@@ -64,14 +52,14 @@ contract Staking {
     }
 
     function withdraw() external isEnoughDays {
-        uint calc = start[msg.sender].calc; 
-        uint256 CountReward = calcReward(totalSupply, calc);     
-        token.transferFrom(address(this), msg.sender, CountReward); 
+        uint calc = start[msg.sender].calc;
+        uint256 CountReward = calcReward(totalSupply, calc);
+        token.transferFrom(address(this), msg.sender, CountReward);
         totalSupply -= CountReward;
     }
 
-    function calcReward(uint totalSupply ,uint calc) public returns (uint256) {
-       uint256 CountReward = (calc * totalSupply*1e18) / 100*1e18;
-      return CountReward;
+    function calcReward(uint total, uint calc) public returns (uint256) {
+        uint256 CountReward = ((calc * total * 1e18) / 100) * 1e18;
+        return CountReward;
     }
 }
