@@ -51,6 +51,13 @@ contract Staking {
         _;
     }
 
+    // function amount() external view returns (uint) {
+    //     return start[msg.sender].amount;
+    // }
+    function calc() external view returns (uint) {
+        return start[msg.sender].calc;
+    }
+
     function withdraw() external isEnoughDays {
         uint calc = start[msg.sender].calc;
         uint256 CountReward = calcReward(totalSupply, calc);
@@ -59,7 +66,7 @@ contract Staking {
     }
 
     function calcReward(uint total, uint calc) public returns (uint256) {
-        uint256 CountReward = ((calc * total * 1e18) / 100) * 1e18;
+        uint256 CountReward = ((calc * 100) / total) / 1e18;
         return CountReward;
     }
 }

@@ -16,47 +16,48 @@ contract TestStaking is Test {
         stack = new StakingRewards(address(token));
     }
 
-
     function TestDeposit() public {
         uint sum = 100 * WAD;
         token.mint(address(this), 1000);
-        uint256 balanceBefore = stack.amount();
-        uint256 initialTtoalBalance = stack.getBalance();
+        uint256 balanceBefore = stack.getBalance();
         token.approve(address(stake), sum);
         stack.deposit(sum);
-        uint256 finalTtoalBalance = stack.amount();
-        uint256 finalUserBalance = stack.getBalance();
+        uint256 balanceAffterDeposit = stack.getBalance();
         assertEq(
-            finalTtoalBalance,
-            initialTtoalBalance + sum,
-            "Contract balance not updated correctly"
-        );
-        assertEq(
-            finalUserBalance,
-            balanceBefore + sum,
+            balanceBefore,
+            balanceAfterDeposit,
             "Contract balance not updated correctly"
         );
     }
-    function TestWithdraw()   {
-      console.log("testWithdraw");
-        uint256 sum = 100 * wad;
+
+    function TestWithdraw() {
+        console.log("testWithdraw");
+        uint256 sum = 100 * WAD;
         token.mint(address(this), sum);
-        token.approve(address(stake),sum);
+        token.approve(address(stake), sum);
         stake.deposit(sum);
-        vm.warp(block.timestamp + 7 days );
-        uint256 balanceBefore = stake.amount(); //200
+        vm.warp(block.timestamp + 7 days);
+        uint256 balanceBefore = stake.getBalance();
         stake.withdraw(sum);
-        uint256 finalUserBalance = stake.amount(); //100
+        uint256 finalUserBalance = stake.getBalance(); //100
         console.log("finamsglUserBalance", finalUserBalance);
-        assertEq(finalUserBalance, balanceBefore - sum, "d");
+        assertEq(balanceBefore, finalUserBalance, "error");
     }
-     function TestIsNtWithdraw()   {
-        uint256 sum = 200 * wad;
+
+    function TestIsNtWithdraw() {
+        uint256 sum = 200 * WAD;
         token.mint(address(this), sum);
-        token.approve(address(stake),sum);
+        token.approve(address(stake), sum);
         stake.deposit(sum);
-        uint256 balanceBefore = stake.amount();
+        uint256 balanceBefore = stake.getBalance();
         vm.expectRevert(); //Not a week has passed
         stake.withdraw(sum);
+    }
+
+    function TestcalcReward() {
+        uint total = stack.totalSupply;
+        uint calc = stack.calc();
+        assertEq(((calc * 100) / total)/1e18,stack.calcReward(),'error');
+
     }
 }
