@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // https://solidity-by-example.org/defi/staking-rewards/
 pragma solidity ^0.8.20;
-import "../../../MyToken/new-project/src/MyToken.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../../new-project/src/MyToken.sol";
+import "../../new-project/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 struct User {
     uint amount;
