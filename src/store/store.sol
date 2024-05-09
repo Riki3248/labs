@@ -8,12 +8,11 @@ contract Store {
         storedValue = newValue;
     }
 
-
-                      uint num = 20;
-                 uint number = 10;
+    uint256 num = 20;
+    uint256 number = 10;
     // Function to get the value
+
     function getValue() public view returns (uint256) {
         return storedValue;
     }
-
 }
