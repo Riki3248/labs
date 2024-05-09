@@ -5,7 +5,7 @@ import "../../new-project/src/MyTokenNft.sol";
 
 contract Tender {
     MyTokenNft nft;
-    mapping(address  => uint256) users;
+    mapping(address => uint256) users;
     mapping(uint256 => address) indexes;
     uint256 counter;
     uint256 duration = 7 days;
@@ -20,11 +20,13 @@ contract Tender {
         maxValue = owner;
     }
 
+    receive() external payable {}
+
     function addNft(uint256 amount) private {
         require(amount > 0, "amount is zero");
         require(amount > users[maxValue], "The value is less than the initial value");
         maxValue = msg.sender;
-        nft.transferFrom(msg.sender, address(this), amount);
+        payable(msg.sender).transfer(amount);
         users[msg.sender] = amount;
         counter += 1;
         indexes[counter] = msg.sender;
@@ -48,10 +50,12 @@ contract Tender {
         users[user] = 0;
     }
 
-    function endTender() private {
+    function endTender() private isOwner{
+        nft.transferFrom(address(this), maxValue, 1);
         while (counter > 0) {
             address offer = indexes[counter];
-           nft.transferFrom(address(this),offer, users[offer]);
+            uint256 val = users[offer];
+            payable(msg.sender).transfer(val);
             counter = counter - 1;
         }
     }
