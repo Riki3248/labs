@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../../new-project/lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import "../../new-project/src/MyTokenNft.sol";
 
 contract Tender {
-    IERC721 nft;
+    MyTokenNft nft;
     mapping(address  => uint256) users;
     mapping(uint256 => address) indexes;
     uint256 counter;
@@ -15,7 +15,7 @@ contract Tender {
     constructor(address Nft) {
         address owner = msg.sender;
         counter = 1;
-        nft = IERC721(Nft);
+        nft = MyTokenNft(Nft);
         users[owner] = 100;
         maxValue = owner;
     }
