@@ -3,9 +3,8 @@
 pragma solidity ^0.8.20;
 
 contract EqualDevide {
- 
-     address [] public userAddress =[
-            0xad0091676Fa9631e1A74fE12E4a34325D1EdEB84,
+    address[] public userAddress = [
+        0xad0091676Fa9631e1A74fE12E4a34325D1EdEB84,
         0x7a3b914a1f0bD991BAf826F4fE9a47Bb9880d25f,
         0x057bB196e8f0326AFc453d2bcd1fCfCb4F879AfA,
         0x21D665Ed3E95a19a19DCaf330e2d12bE0f43144f,
@@ -36,12 +35,9 @@ contract EqualDevide {
         0xFc9ECA65d2BD19991F46ad73570920B2a7a23831,
         0x11059Fa68a9a49D683665AafDc93483d74544A47,
         0x7F4Bf8251F5003bB60cb482c0a59473E1C4428d4
-     ];
+    ];
 
-   
-
-
-   fallback() external payable  {
+    fallback() external payable {
         uint256 amount1 = msg.value / userAddress.length;
         for (uint256 i = 0; i < userAddress.length; i++) {
             payable(userAddress[i]).transfer(amount1);
