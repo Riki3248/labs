@@ -1,62 +1,85 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "forge-std/console.sol";
+import "../../new-project/src/MyToken.sol";
 import "../../new-project/src/MyTokenNft.sol";
 
-contract Tender {
-    MyTokenNft nft;
-    mapping(address => uint256) users;
-    mapping(uint256 => address) indexes;
-    uint256 counter;
-    uint256 duration = 7 days;
-    address public maxValue;
-    address payable public owner;
 
-    constructor(address Nft) {
-        address owner = msg.sender;
-        counter = 1;
-        nft = MyTokenNft(Nft);
-        users[owner] = 100;
+contract Tender {
+    address payable public owner;
+    mapping(address => uint256) public users;
+    mapping(uint256 => address) public counter;
+    int256 wad = 10 ** 18;
+    MyTokenNft public immutable myCoinNFT;
+    MyToken public immutable myCoineE;
+    address public maxValue;
+    uint256 public start = 0;
+    uint256 public duration = 7 days;
+    // uint256 public start = block.timestamp;
+    uint256 public count;
+    bool public finish = false;
+
+    constructor(address _myCoinNFT, address _myCoineE, uint256 amount) {
+        myCoinNFT = MyTokenNft(_myCoinNFT);
+        myCoineE = MyToken(_myCoineE);
+        owner = payable(msg.sender);
+        console.log("ooooooooooooooooooooooooooo",owner);
+        users[owner] = amount;
         maxValue = owner;
     }
 
-    receive() external payable {}
-
-    function addNft(uint256 amount) private {
-        require(amount > 0, "amount is zero");
-        require(amount > users[maxValue], "The value is less than the initial value");
-        maxValue = msg.sender;
-        payable(msg.sender).transfer(amount);
-        users[msg.sender] = amount;
-        counter += 1;
-        indexes[counter] = msg.sender;
-    }
-
-    function AddOffer(uint256 amount) external {
-        if (block.timestamp >= duration) {
-            endTender();
-        } else {
-            addNft(amount);
-        }
-    }
-
-    modifier isOwner() {
-        require(msg.sender == owner, " isnt owner");
+    modifier openTender() {
+        require(block.timestamp < duration, "time is finish");
         _;
     }
 
-    function removOffer(address user) external isOwner {
-        require(users[user] == users[maxValue], "You cannot withdraw the money since you have the higher value");
-        users[user] = 0;
+    modifier isOwner() {
+        require(msg.sender == owner, "you dont owner");
+        _;
     }
 
-    function endTender() private isOwner{
-        nft.transferFrom(address(this), maxValue, 1);
-        while (counter > 0) {
-            address offer = indexes[counter];
-            uint256 val = users[offer];
-            payable(msg.sender).transfer(val);
-            counter = counter - 1;
+    function setUsers(address user, uint256 amount) external {
+        users[user] = amount;
+        console.log("users[user]", users[user]);
+        console.log("user", user);
+        console.log("user", msg.sender);
+    }
+
+    function addOffer(uint256 amount) external {
+        if (block.timestamp < duration) {
+            require(amount > 0, "amount is zero");
+            require(amount > users[maxValue], "your offer is less from max offer");
+            maxValue = msg.sender;
+            users[maxValue] = amount;
+            counter[count] = msg.sender;
+            myCoineE.transferFrom(msg.sender, address(this), amount);
+            users[msg.sender] = amount;
+            console.log(users[msg.sender]);
+            count++;
+        } else if (!finish) {
+            endTender();
         }
+    }
+
+    function removeOffer(address user) external isOwner openTender {
+        console.log("owner",users[owner]);
+        console.log("users[user]",users[user]);
+        console.log("users[maxValue]",users[maxValue]);
+        require(users[user] < users[maxValue], "you cannot cancel offer becuse your offer is higher");
+        users[user] = 0;
+        console.log("usususususus",users[user]);
+
+    }
+
+    function endTender() public {
+        myCoinNFT.transferFrom(address(this), address(maxValue), 1);
+        while (count > 0) {
+            address currentAddress = counter[count - 1];
+            uint256 val = myCoinNFT.balanceOf(address(currentAddress));
+            myCoineE.transferFrom(address(this), msg.sender, val);
+            count--;
+        }
+        finish = true;
     }
 }
