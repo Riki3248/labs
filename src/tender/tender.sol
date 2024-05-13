@@ -5,7 +5,6 @@ import "forge-std/console.sol";
 import "../../new-project/src/MyToken.sol";
 import "../../new-project/src/MyTokenNft.sol";
 
-
 contract Tender {
     address payable public owner;
     mapping(address => uint256) public users;
@@ -24,7 +23,7 @@ contract Tender {
         myCoinNFT = MyTokenNft(_myCoinNFT);
         myCoineE = MyToken(_myCoineE);
         owner = payable(msg.sender);
-        console.log("ooooooooooooooooooooooooooo",owner);
+        console.log("ooooooooooooooooooooooooooo", owner);
         users[owner] = amount;
         maxValue = owner;
     }
@@ -41,6 +40,11 @@ contract Tender {
 
     function setUsers(address user, uint256 amount) external {
         users[user] = amount;
+        require(amount > users[maxValue], "your offer is less from max offer");
+        console.log(" users[maxValue]", users[maxValue]);
+        maxValue = msg.sender;
+        users[maxValue] = amount;
+        console.log(" users[maxValue]", users[maxValue]);
         console.log("users[user]", users[user]);
         console.log("user", user);
         console.log("user", msg.sender);
@@ -51,6 +55,7 @@ contract Tender {
             require(amount > 0, "amount is zero");
             require(amount > users[maxValue], "your offer is less from max offer");
             maxValue = msg.sender;
+            console.log(maxValue);
             users[maxValue] = amount;
             counter[count] = msg.sender;
             myCoineE.transferFrom(msg.sender, address(this), amount);
@@ -63,16 +68,15 @@ contract Tender {
     }
 
     function removeOffer(address user) external isOwner openTender {
-        console.log("owner",users[owner]);
-        console.log("users[user]",users[user]);
-        console.log("users[maxValue]",users[maxValue]);
+        console.log("owner", users[owner]);
+        console.log("users[user]", users[user]);
+        console.log("users[maxValue]", users[maxValue]);
         require(users[user] < users[maxValue], "you cannot cancel offer becuse your offer is higher");
         users[user] = 0;
-        console.log("usususususus",users[user]);
-
+        console.log("usususususus", users[user]);
     }
 
-    function endTender() public {
+    function endTender() public isOwner {
         myCoinNFT.transferFrom(address(this), address(maxValue), 1);
         while (count > 0) {
             address currentAddress = counter[count - 1];

@@ -51,11 +51,20 @@ contract TestTender is Test {
         address user1 = vm.addr(1234);
         address user2 = vm.addr(123);
         address owner = 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496;
-        tenderA.setUsers(user1,sum1);
-        tenderA.setUsers(user2,sum2);
+        tenderA.setUsers(user1, sum1);
+        tenderA.setUsers(user2, sum2);
         vm.startPrank(owner);
         vm.warp(2 days);
         tenderA.removeOffer(user1);
+        vm.stopPrank();
+    }
+
+    function testendTender() public {
+        address owner = 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496;
+        address user1 = vm.addr(1234);
+        vm.startPrank(owner);
+        myCoinNFT.approve(address(user1), 1);
+        tenderA.endTender();
         vm.stopPrank();
     }
 }
