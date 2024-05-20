@@ -37,4 +37,5 @@ contract Lending {
     function borrow(uint256 amount) public {
         getLatestPrice();
     }
+
 }
