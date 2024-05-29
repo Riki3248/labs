@@ -19,7 +19,7 @@ contract TestLending is Test {
         lending = new Lending(address(bonds),address(Dai));
     }
 
-    function testBorrow() public {
-        lending.getLatestPrice();
-    }
+    // function testBorrow() public {
+    //     lending.getLatestPrice();
+    // }
 }

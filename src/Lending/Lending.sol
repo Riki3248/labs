@@ -3,13 +3,13 @@ pragma solidity >=0.5.11;
 
 import "../../new-project/src/MyToken.sol";
 import "../..//new-project/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract Lending {
     address owner;
     mapping(address => uint256) deposites;
     MyToken bonds;
     MyToken Dai;
+    // ETH public payable;
 
     constructor(address bondsToken, address DaiToken) public {
         owner = msg.sender;
@@ -27,15 +27,17 @@ contract Lending {
         bonds.burn(msg.sender, countBonds);
         Dai.transfer(msg.sender, countBonds);
     }
+function changeETH(uint256 countETH) public{
 
-    function getLatestPrice() public view returns (int256) {
-        priceFeed = AggregatorV3Interface(0xF79D6aFBb6dA890132F9D7c355e3015f15F3406F);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        return price;
-    }
+}
+    // function getLatestPrice() public view returns (int256) {
+    //     priceFeed = AggregatorV3Interface(0xF79D6aFBb6dA890132F9D7c355e3015f15F3406F);
+    //     (, int256 price,,,) = priceFeed.latestRoundData();
+    //     return price;
+    // }
 
-    function borrow(uint256 amount) public {
-        getLatestPrice();
-    }
+    // function borrow(uint256 amount) public {
+    //     getLatestPrice();
+    // }
 
 }
